@@ -1,0 +1,34 @@
+{
+  "configurations": [
+    {
+      "id": "6B2BF61D-09F6-420D-AB56-12846FB8497E",
+      "name": "Default",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "target": {
+        "containerPath": "container:SeriesAtlas.xcodeproj",
+        "identifier": "DA2F334930AEFE6C00C72702",
+        "name": "SeriesAtlasTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:SeriesAtlas.xcodeproj",
+        "identifier": "DA2F335330AEFE6C00C72702",
+        "name": "SeriesAtlasUITests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:SeriesAtlas.xcodeproj",
+        "identifier": "05D5E628581F4AEABDD3F1CF",
+        "name": "SeriesAtlasNetworkTests"
+      }
+    }
+  ],
+  "version": 1
+}

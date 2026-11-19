@@ -46,6 +46,19 @@ jobs:
             xcrun simctl list devices available
           } 2>&1 | tee "$RUNNER_TEMP/TestResults/environment.log"
 
+      - name: Test network package
+        timeout-minutes: 5
+        run: |
+          swift test \
+            --package-path Packages/SeriesAtlasNetwork \
+            --enable-code-coverage \
+            2>&1 | tee "$RUNNER_TEMP/TestResults/network-tests.log"
+          SERIES_ATLAS_NETWORK_COVERAGE_PATH=$(swift test \
+            --package-path Packages/SeriesAtlasNetwork \
+            --show-codecov-path)
+          cp "$SERIES_ATLAS_NETWORK_COVERAGE_PATH" \
+            "$RUNNER_TEMP/TestResults/network-coverage.json"
+
       - name: Prepare simulator
         timeout-minutes: 3
         run: |
@@ -78,6 +91,34 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build-for-testing \
             2>&1 | tee "$RUNNER_TEMP/TestResults/build.log"
+
+      - name: Verify test bundles
+        timeout-minutes: 1
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import plistlib
+          from pathlib import Path
+
+          plan = json.loads(Path("SeriesAtlas.xctestplan").read_text())
+          expected = {
+              entry["target"]["name"]
+              for entry in plan["testTargets"]
+              if not entry.get("skipped", False)
+          }
+          products = Path(os.environ["RUNNER_TEMP"]) / "SeriesAtlasDerivedData/Build/Products"
+          actual = set()
+          for path in products.glob("*.xctestrun"):
+              run = plistlib.loads(path.read_bytes())
+              for configuration in run.get("TestConfigurations", []):
+                  if configuration.get("IsEnabled", True):
+                      actual.update(target["BlueprintName"] for target in configuration["TestTargets"])
+          missing = expected - actual
+          if missing:
+              raise SystemExit(f"Missing test bundles: {', '.join(sorted(missing))}")
+          print(f"Verified test bundles: {', '.join(sorted(expected))}")
+          PY
 
       - name: Run tests
         timeout-minutes: 10

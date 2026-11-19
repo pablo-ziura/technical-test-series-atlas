@@ -21,6 +21,9 @@ xcuserdata/
 # Swift Package Manager build products
 .build/
 
+# Generated standalone package workspace
+/Packages/SeriesAtlasNetwork/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+
 # Local environment configuration
 .env
 .env.*
