@@ -48,6 +48,27 @@ Los tests unitarios se escribirán con Swift Testing. Se priorizarán estos comp
 
 El tiempo y las respuestas de red se controlarán mediante dependencias de prueba, evitando llamadas reales y esperas para comprobar la expiración.
 
+## Integración continua
+
+El workflow [iOS CI](.github/workflows/ios-ci.yml) ejecuta el check **Build and unit tests** en las pull requests hacia `develop` y `main`.
+
+Utiliza Xcode 27.2 y un iPhone 17 con iOS 27.2. Compila la app y los tests con `build-for-testing` y ejecuta `SeriesAtlasTests` con `test-without-building`, sin certificados de firma ni credenciales de la API. La selección actual incluye solo los tests unitarios; los de interfaz quedan fuera de este workflow.
+
+La cobertura se exporta como información, sin un porcentaje mínimo obligatorio. Los logs, el informe de cobertura y los resultados `.xcresult` se conservan durante siete días. Las ejecuciones anteriores de la misma PR se cancelan al recibir nuevos cambios y cada fase tiene un tiempo máximo.
+
+Para ejecutar la misma selección de tests en local, con ese simulador instalado:
+
+```sh
+xcodebuild -project SeriesAtlas.xcodeproj -scheme SeriesAtlas \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=27.2' \
+  -only-testing:SeriesAtlasTests -enableCodeCoverage YES \
+  CODE_SIGNING_ALLOWED=NO test
+```
+
+Actualmente se ejecuta el test de ejemplo de la plantilla; un resultado satisfactorio valida la infraestructura, no el comportamiento funcional previsto. La primera ejecución en GitHub queda pendiente de publicar esta rama y abrir la PR. También se admite ejecución manual cuando el workflow esté en la rama predeterminada del repositorio.
+
 ## Flujo de trabajo
 
 Tras la configuración inicial del repositorio, el desarrollo se realizará en ramas `feature/<description>` creadas a partir de `develop`. Los cambios se integrarán en `develop` mediante pull requests para su revisión.
+
+La integración en `main` también se realizará mediante PR. En ambas ramas se configurará un ruleset que exija **Build and unit tests**, mantenga la rama actualizada antes de integrar y bloquee borrados y force pushes. La protección se activa en GitHub, de forma independiente al fichero del workflow.
