@@ -1,10 +1,3 @@
-//
-//  SeriesAtlasTests.swift
-//  SeriesAtlasTests
-//
-//  Created by Pablo Ruiz Arnal on 19/11/2026.
-//
-
 import Testing
 
 struct SeriesAtlasTests {
