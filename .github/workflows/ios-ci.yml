@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   verify:
-    name: Build and unit tests
+    name: Build and tests
     runs-on: xcode-27
     timeout-minutes: 30
 
@@ -64,7 +64,7 @@ jobs:
           xcrun simctl bootstatus "$SERIES_ATLAS_SIMULATOR_ID" -b \
             2>&1 | tee "$RUNNER_TEMP/TestResults/simulator-boot.log"
 
-      - name: Build app and unit tests
+      - name: Build app and tests
         timeout-minutes: 10
         run: |
           xcodebuild \
@@ -74,13 +74,12 @@ jobs:
             -destination "$DESTINATION" \
             -destination-timeout 60 \
             -derivedDataPath "$RUNNER_TEMP/SeriesAtlasDerivedData" \
-            -only-testing:SeriesAtlasTests \
             -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO \
             build-for-testing \
             2>&1 | tee "$RUNNER_TEMP/TestResults/build.log"
 
-      - name: Run unit tests
+      - name: Run tests
         timeout-minutes: 10
         run: |
           xcodebuild \
@@ -91,7 +90,6 @@ jobs:
             -destination-timeout 60 \
             -derivedDataPath "$RUNNER_TEMP/SeriesAtlasDerivedData" \
             -resultBundlePath "$RUNNER_TEMP/TestResults/SeriesAtlas.xcresult" \
-            -only-testing:SeriesAtlasTests \
             -enableCodeCoverage YES \
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
@@ -120,7 +118,7 @@ jobs:
           if [ -n "${SERIES_ATLAS_SIMULATOR_ID:-}" ]; then
             xcrun simctl spawn "$SERIES_ATLAS_SIMULATOR_ID" log show \
               --last 10m --style compact \
-              --predicate 'process == "testmanagerd" OR process == "runningboardd" OR process == "SpringBoard" OR process == "SeriesAtlas" OR process == "xctest"' \
+              --predicate 'process == "testmanagerd" OR process == "runningboardd" OR process == "SpringBoard" OR process == "SeriesAtlas" OR process == "SeriesAtlasUITests-Runner" OR process == "xctest"' \
               > "$RUNNER_TEMP/TestResults/simulator.log" 2>&1 || true
           fi
 
