@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  SeriesAtlas
-//
-//  Created by Pablo Ruiz Arnal on 19/11/2026.
-//
-
 import SwiftUI
 
 struct ContentView: View {
