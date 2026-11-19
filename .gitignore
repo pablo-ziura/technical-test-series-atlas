@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+.AppleDouble
+._*
+
+# Xcode build products and reports
+build/
+DerivedData/
+*.xcarchive
+*.xcresult
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Per-user Xcode settings
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager build products
+.build/
+
+# Local environment configuration
+.env
+.env.*
+!.env.example
+
+# Keep project files, shared schemes, and Package.resolved under version control.
