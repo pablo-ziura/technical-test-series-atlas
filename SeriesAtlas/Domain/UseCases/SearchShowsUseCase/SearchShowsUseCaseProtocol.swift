@@ -1,5 +1,5 @@
 import Foundation
 
-nonisolated protocol SearchShowsUseCaseProtocol: Sendable {
+protocol SearchShowsUseCaseProtocol: Sendable {
     func execute(query: String) async throws -> [Show]
 }

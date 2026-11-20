@@ -8,11 +8,7 @@ struct SearchShowsUseCase: SearchShowsUseCaseProtocol {
     }
 
     func execute(query: String) async throws -> [Show] {
-        try Task.checkCancellation()
-        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedQuery.isEmpty else { return [] }
-
-        let shows = try await showsRepository.searchShows(query: trimmedQuery)
+        let shows = try await showsRepository.searchShows(query: query)
         try Task.checkCancellation()
         return shows
     }
