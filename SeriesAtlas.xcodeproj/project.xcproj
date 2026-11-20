@@ -23,13 +23,6 @@
     { "kind": "folder", "path": "SeriesAtlasUITests", "target-membership": [ "SeriesAtlasUITests" ] },
     {
       "kind": "group",
-      "path": "NetworkTests",
-      "children": [
-        { "path": "../Packages/SeriesAtlasNetwork/Tests/SeriesAtlasNetworkTests/HTTPTransportStub.swift", "target-membership": [ "SeriesAtlasNetworkTests/compile-sources" ] },
-        { "path": "../Packages/SeriesAtlasNetwork/Tests/SeriesAtlasNetworkTests/NetworkClientTests.swift", "target-membership": [ "SeriesAtlasNetworkTests/compile-sources" ] },
-      ],
-    }, {
-      "kind": "group",
       "name": "Products",
       "children": [
         { "path": "<PRODUCTS>/SeriesAtlas.app", "id": "DA2F333D30AEFE6500C72702", "type": "wrapper.application", "index": false },
