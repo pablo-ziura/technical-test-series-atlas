@@ -2,7 +2,7 @@
 
 Prueba técnica iOS para buscar series y consultar su sinopsis, géneros, idioma y valoración con la API pública de [TVmaze](https://www.tvmaze.com/api).
 
-La app conserva por ahora la interfaz de plantilla. Está implementado el paquete de red genérico `SeriesAtlasNetwork`; la integración con TVmaze, las capas de negocio y las pantallas están pendientes.
+La app conserva por ahora la interfaz de plantilla. Están implementados el paquete de red genérico `SeriesAtlasNetwork` y la capa Domain; la integración con TVmaze, Data y las pantallas están pendientes.
 
 ## Ejecutar el proyecto
 
@@ -24,13 +24,21 @@ Los tests usan Swift Testing y transportes controlados independientes. Cubren pe
 
 El paquete figura como dependencia local en **Package Dependencies**. Para ejecutar sus tests desde el esquema de la app, el target `SeriesAtlasNetworkTests` del proyecto compila las mismas fuentes de `Packages/SeriesAtlasNetwork/Tests/SeriesAtlasNetworkTests`, mediante una carpeta sincronizada. No se duplican archivos de tests. El paquete conserva su propio target de SwiftPM para probarlo de forma independiente; ambas configuraciones deben mantenerse coherentes.
 
-## Diseño pendiente: MVVM y capas
+## Capa de dominio
 
-La implementación funcional combinará MVVM con separación e inyección por constructor:
+`SeriesAtlas/Domain` contiene `Show`, `ShowsRepositoryProtocol` y `SearchShowsUseCase` con su protocolo. Se organiza en carpetas `Entities`, `Repositories` y `UseCases`, con un tipo por archivo y sin dependencias de SwiftUI ni del paquete de red. El modelo y los contratos son `Sendable`.
 
-- **Domain:** modelos, casos de uso y contrato del repositorio, sin conocer la implementación de red.
-- **Data:** servicio de TVmaze, DTOs, mapeos, caché y repositorio; utilizará el paquete de red.
-- **Presentation:** vistas SwiftUI y ViewModels aislados en `MainActor`, dependientes de Domain.
+El modelo inmutable reúne los datos de listado y detalle: nombre, sinopsis en texto, géneros, idioma, valoración, imagen y enlace de atribución a TVmaze. Conserva los datos opcionales; el futuro mapeo en Data convertirá la sinopsis HTML en texto legible.
+
+El caso de uso recibe el repositorio por constructor, recorta espacios y saltos de línea exteriores y devuelve una lista vacía sin consultar el repositorio si la consulta queda vacía. Conserva las mayúsculas y los espacios interiores, propaga resultados y errores, y comprueba la cancelación antes de buscar y después de recibir la respuesta. Sus tests usan Swift Testing, con un mock configurable y una instancia independiente del caso de uso por test. La cancelación se controla desde el mock, sin esperas temporales.
+
+## Arquitectura: MVVM y capas
+
+El flujo previsto es **Vista → ViewModel → Caso de uso → Repositorio → Servicio → Cliente de red**, con inyección por constructor:
+
+- **Domain, implementado:** modelo, caso de uso de búsqueda y contrato del repositorio, sin conocer la implementación de red.
+- **Data, pendiente:** servicio de TVmaze, DTOs, mapeos, caché y repositorio; utilizará el paquete de red e implementará el contrato de Domain.
+- **Presentation, pendiente:** vistas SwiftUI y ViewModels aislados en `MainActor`, dependientes de Domain.
 
 La composición de las dependencias se realizará en el punto de entrada de la app. La búsqueda tendrá un debounce de 300 ms, cancelará el trabajo anterior y descartará respuestas que ya no correspondan a la consulta vigente. Una consulta vacía limpiará el estado.
 
@@ -57,7 +65,7 @@ xcodebuild -project SeriesAtlas.xcodeproj -scheme SeriesAtlas \
   CODE_SIGNING_ALLOWED=NO test
 ```
 
-El primer comando ejecuta los tests nativos del paquete en macOS. El segundo necesita un iPhone 17 con iOS 27.2 instalado y ejecuta el mismo plan que `⌘U`: `SeriesAtlasTests`, `SeriesAtlasUITests` y `SeriesAtlasNetworkTests`. Los dos primeros conservan ejemplos de la plantilla; sus resultados validan la infraestructura, no la funcionalidad de búsqueda pendiente.
+El primer comando ejecuta los tests nativos del paquete en macOS. El segundo necesita un iPhone 17 con iOS 27.2 instalado y ejecuta el mismo plan que `⌘U`: `SeriesAtlasTests`, `SeriesAtlasUITests` y `SeriesAtlasNetworkTests`. Los tests de la app cubren el caso de uso de búsqueda: consultas vacías, recorte, resultados, errores y cancelación antes y durante la búsqueda. Los tests de interfaz conservan los ejemplos de la plantilla y todavía no validan pantallas de búsqueda.
 
 El workflow [iOS CI](.github/workflows/ios-ci.yml) mantiene el check **Build and tests** en las PR hacia `develop` y `main`. Usa Xcode 27.2, ejecuta los tests nativos del paquete y compila la app y los tests con `build-for-testing` antes de usar `test-without-building`. Comprueba que se hayan generado todos los bundles del plan para detectar targets omitidos por Xcode.
 
