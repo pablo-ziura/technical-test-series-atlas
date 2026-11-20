@@ -2,7 +2,7 @@
 
 Prueba técnica iOS para buscar series y personas con la API pública de [TVmaze](https://www.tvmaze.com/api) y consultar sus fichas.
 
-La app conserva por ahora la interfaz de plantilla. Están implementados el paquete de red genérico `SeriesAtlasNetwork` y las capas Domain y Data. La composición de dependencias y las pantallas de búsqueda están pendientes.
+La app permite buscar series y personas y abrir sus fichas desde las pestañas **Shows** y **People**. **Settings** muestra versión, compilación y atribución. La interfaz está en inglés y utiliza componentes nativos de SwiftUI. Están implementados el paquete de red `SeriesAtlasNetwork` y las capas Domain, Data y Presentation; la caché temporal sigue pendiente.
 
 ## Ejecutar el proyecto
 
@@ -22,7 +22,7 @@ El cliente recibe la URL base y una `URLSession` por constructor, codifica pará
 
 Los tests usan Swift Testing y transportes controlados independientes. Cubren peticiones, respuestas, errores, cancelación y llamadas concurrentes, sin acceder a la red ni usar esperas arbitrarias.
 
-El paquete figura como dependencia local en **Package Dependencies**. Para ejecutar sus tests desde el esquema de la app, el target `SeriesAtlasNetworkTests` del proyecto compila las mismas fuentes de `Packages/SeriesAtlasNetwork/Tests/SeriesAtlasNetworkTests`, mediante una carpeta sincronizada. No se duplican archivos de tests. El paquete conserva su propio target de SwiftPM para probarlo de forma independiente; ambas configuraciones deben mantenerse coherentes.
+El paquete figura como dependencia local en **Package Dependencies** y sus tests se ejecutan con SwiftPM. El esquema de la app también declara un target `SeriesAtlasNetworkTests`, pero actualmente no tiene fuentes asignadas y ejecuta cero tests; queda pendiente corregir esa configuración en Xcode. La ejecución de `swift test` sigue siendo necesaria para validar el paquete.
 
 ## Capa de dominio
 
@@ -42,13 +42,15 @@ La cancelación se comprueba al entrar y salir del cliente de red, al terminar e
 
 ## Arquitectura: MVVM y capas
 
-El flujo previsto es **Vista → ViewModel → Caso de uso → Repositorio → Servicio → Cliente de red**, con inyección por constructor:
+El flujo de búsqueda es **Vista → ViewModel → Caso de uso → Repositorio → Servicio → Cliente de red**, con inyección por constructor:
 
 - **Domain, implementado:** modelos y casos de uso de búsqueda de series y personas, que utilizan los contratos de repositorio definidos en Data.
 - **Data, implementada:** servicios de TVmaze, DTOs, mapeos, contratos e implementaciones de los repositorios; utiliza el paquete de red. La caché está pendiente.
-- **Presentation, pendiente:** vistas SwiftUI y ViewModels aislados en `MainActor`, dependientes de Domain.
+- **Presentation:** vistas SwiftUI, ViewModels de búsqueda y coordinadores por feature, aislados en `MainActor` y dependientes de Domain.
 
-La composición de las dependencias se realizará en el punto de entrada de la app. El ViewModel recortará espacios y saltos de línea exteriores de la consulta y limpiará el estado ante consultas vacías. La búsqueda tendrá un debounce de 300 ms, cancelará el trabajo anterior y descartará respuestas que ya no correspondan a la consulta vigente.
+`AppDependencies`, junto al punto de entrada, compone explícitamente cliente, servicios, repositorios y casos de uso. `AppCoordinator` conserva el router y los coordinadores de Shows, People y Settings. Los coordinadores construyen pantallas y conservan sus ViewModels; `AppRouter` mantiene la pestaña seleccionada y las pilas tipadas de Shows y People. Cada pestaña tiene su propio `NavigationStack` y conserva consulta, resultados y detalle al cambiar de sección. Los detalles reciben el modelo seleccionado y no necesitan otra petición ni un ViewModel propio.
+
+Cada buscador recorta espacios y saltos de línea exteriores y limpia su estado ante consultas vacías. La búsqueda cancela inmediatamente el trabajo anterior, espera un debounce de 300 ms y descarta respuestas y errores de tareas canceladas antes de actualizar el estado. La espera se inyecta para probarla sin pausas reales. Se muestran estados inicial, carga, resultados, sin resultados y error con reintento inmediato; una cancelación no se presenta como error. Cambiar de pestaña permite terminar la búsqueda vigente y volver del detalle no repite la petición.
 
 ## API
 
@@ -71,7 +73,9 @@ xcodebuild -project SeriesAtlas.xcodeproj -scheme SeriesAtlas \
   CODE_SIGNING_ALLOWED=NO test
 ```
 
-El primer comando ejecuta los tests nativos del paquete en macOS. El segundo necesita un iPhone 17 con iOS 27.2 instalado y ejecuta el mismo plan que `⌘U`: `SeriesAtlasTests`, `SeriesAtlasUITests` y `SeriesAtlasNetworkTests`. Los tests de la app cubren los casos de uso, repositorios, servicios y mapeos de series y personas, errores y cancelación, además del recorrido completo con red simulada. Usan mocks configurables y fixtures en archivos Swift separados, sin acceder a TVmaze. Los tests de interfaz conservan los ejemplos de la plantilla y todavía no validan pantallas de búsqueda.
+El primer comando ejecuta los tests nativos del paquete en macOS. El segundo necesita un iPhone 17 con iOS 27.2 instalado y ejecuta el mismo plan que `⌘U`: `SeriesAtlasTests`, `SeriesAtlasUITests` y `SeriesAtlasNetworkTests`. Los tests unitarios existentes cubren casos de uso, repositorios, servicios, mapeos, errores y cancelación, con red simulada. Los tests unitarios de Presentation quedan para una entrega posterior.
+
+Los tests de interfaz recorren búsqueda y detalle de Shows y People, conservación del estado entre pestañas y Settings. Lanzan la app con `--ui-testing`, que en Debug selecciona casos de uso con datos fijos y sin imágenes remotas; esta composición no se incluye en Release.
 
 El workflow [iOS CI](.github/workflows/ios-ci.yml) mantiene el check **Build and tests** en las PR hacia `develop` y `main`. Usa Xcode 27.2, ejecuta los tests nativos del paquete y compila la app y los tests con `build-for-testing` antes de usar `test-without-building`. Comprueba que se hayan generado todos los bundles del plan para detectar targets omitidos por Xcode.
 
