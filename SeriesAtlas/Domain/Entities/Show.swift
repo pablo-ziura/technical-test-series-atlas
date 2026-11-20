@@ -1,6 +1,6 @@
 import Foundation
 
-struct Show: Identifiable, Hashable, Sendable {
+struct Show: Codable, Identifiable, Hashable, Sendable {
     let id: Int
     let name: String
     let summary: String?

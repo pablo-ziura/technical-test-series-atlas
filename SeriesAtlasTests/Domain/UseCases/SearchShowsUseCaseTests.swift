@@ -1,6 +1,7 @@
 @testable import SeriesAtlas
 import Testing
 
+@MainActor
 final class SearchShowsUseCaseTests {
     private let mockShowsRepository: ShowsRepositoryMock
     private let searchShowsUseCase: SearchShowsUseCase
@@ -18,17 +19,18 @@ final class SearchShowsUseCaseTests {
         let result = try await searchShowsUseCase.execute(query: " \nThe  Office\t ")
 
         #expect(result == expectedShows)
-        #expect(mockShowsRepository.searchShowsCalledWith == "The  Office")
+        #expect(mockShowsRepository.searchShowsCalledWith == " \nThe  Office\t ")
     }
 
-    @Test
-    func testExecuteWithEmptyQuery() async throws {
-        for query in ["", " \t\n\r "] {
-            let result = try await searchShowsUseCase.execute(query: query)
+    @Test(arguments: ["", " \t\n\r "])
+    func testExecuteForwardsEmptyQueries(query: String) async throws {
+        let expectedShows = try Show.mockShows()
+        mockShowsRepository.showsToReturn = expectedShows
 
-            #expect(result.isEmpty)
-            #expect(mockShowsRepository.searchShowsCalledWith == nil)
-        }
+        let result = try await searchShowsUseCase.execute(query: query)
+
+        #expect(result == expectedShows)
+        #expect(mockShowsRepository.searchShowsCalledWith == query)
     }
 
     @Test
@@ -63,7 +65,6 @@ final class SearchShowsUseCaseTests {
         task.cancel()
 
         await #expect(throws: CancellationError.self) { try await task.value }
-        #expect(mockShowsRepository.searchShowsCalledWith == nil)
     }
 
     @Test

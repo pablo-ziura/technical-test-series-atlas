@@ -26,7 +26,6 @@ public struct NetworkClient: NetworkClientProtocol {
             headers?.forEach { request.setValue($1, forHTTPHeaderField: $0) }
 
             let (data, response) = try await transport.data(for: request)
-            try Task.checkCancellation()
 
             guard let response = response as? HTTPURLResponse else {
                 throw NetworkError.invalidResponse
