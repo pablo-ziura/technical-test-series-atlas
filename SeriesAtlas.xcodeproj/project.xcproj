@@ -17,12 +17,18 @@
     },
   ],
   "files": [
-    { "kind": "folder", "path": "Packages/SeriesAtlasNetwork/Tests/SeriesAtlasNetworkTests", "target-membership": [ "SeriesAtlasNetworkTests" ] },
     { "path": "README.md", "target-membership": [ "SeriesAtlas/resources" ] },
     { "kind": "folder", "path": "SeriesAtlas", "target-membership": [ "SeriesAtlas" ] },
     { "kind": "folder", "path": "SeriesAtlasTests", "target-membership": [ "SeriesAtlasTests" ] },
     { "kind": "folder", "path": "SeriesAtlasUITests", "target-membership": [ "SeriesAtlasUITests" ] },
     {
+      "kind": "group",
+      "path": "NetworkTests",
+      "children": [
+        { "path": "../Packages/SeriesAtlasNetwork/Tests/SeriesAtlasNetworkTests/HTTPTransportStub.swift", "target-membership": [ "SeriesAtlasNetworkTests/compile-sources" ] },
+        { "path": "../Packages/SeriesAtlasNetwork/Tests/SeriesAtlasNetworkTests/NetworkClientTests.swift", "target-membership": [ "SeriesAtlasNetworkTests/compile-sources" ] },
+      ],
+    }, {
       "kind": "group",
       "name": "Products",
       "children": [
@@ -86,7 +92,7 @@
         "SUPPORTED_PLATFORMS": "iphoneos iphonesimulator",
         "SUPPORTS_MACCATALYST": "NO",
         "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
-        "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
+        "SWIFT_DEFAULT_ACTOR_ISOLATION": "nonisolated",
         "SWIFT_EMIT_LOC_STRINGS": "YES",
         "SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY": "YES",
         "SWIFT_VERSION": "6.0",
@@ -122,6 +128,7 @@
         "STRING_CATALOG_GENERATE_SYMBOLS": "NO",
         "SUPPORTED_PLATFORMS": "iphoneos iphonesimulator macosx xros xrsimulator",
         "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
+        "SWIFT_DEFAULT_ACTOR_ISOLATION": "nonisolated",
         "SWIFT_EMIT_LOC_STRINGS": "NO",
         "SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY": "YES",
         "SWIFT_VERSION": "6.0",
@@ -258,7 +265,7 @@
     "SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug]": "DEBUG $(inherited)",
     "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
     "SWIFT_COMPILATION_MODE[config=Release]": "wholemodule",
-    "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
+    "SWIFT_DEFAULT_ACTOR_ISOLATION": "nonisolated",
     "SWIFT_OPTIMIZATION_LEVEL[config=Debug]": "-Onone",
     "SWIFT_VERSION": "6.0",
   },
