@@ -5,48 +5,38 @@ import Observation
 @Observable
 final class PeopleSearchViewModel {
     private let searchPeopleUseCase: SearchPeopleUseCaseProtocol
-    private let delay: SearchDelay
     private var searchTask: Task<Void, Never>?
 
     var state: SearchState<Person> = .idle
+    var query = ""
+    private(set) var submittedQuery = ""
 
-    var query = "" {
-        didSet {
-            guard query != oldValue else { return }
-            search(debounced: true)
-        }
+    init(searchPeopleUseCase: SearchPeopleUseCaseProtocol) {
+        self.searchPeopleUseCase = searchPeopleUseCase
     }
 
-    init(
-        searchPeopleUseCase: SearchPeopleUseCaseProtocol,
-        delay: SearchDelay = ContinuousSearchDelay()
-    ) {
-        self.searchPeopleUseCase = searchPeopleUseCase
-        self.delay = delay
+    func search() {
+        performSearch(query: query.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
     func retry() {
-        search(debounced: false)
+        performSearch(query: submittedQuery)
     }
 
-    private func search(debounced: Bool) {
+    private func performSearch(query: String) {
         searchTask?.cancel()
-        let currentQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        submittedQuery = query
 
-        guard !currentQuery.isEmpty else {
+        guard !query.isEmpty else {
             searchTask = nil
             state = .idle
             return
         }
 
         state = .loading
-        searchTask = Task { [weak self, searchPeopleUseCase, delay] in
+        searchTask = Task { [weak self, searchPeopleUseCase] in
             do {
-                if debounced {
-                    try await delay.wait()
-                }
-                try Task.checkCancellation()
-                let people = try await searchPeopleUseCase.execute(query: currentQuery)
+                let people = try await searchPeopleUseCase.execute(query: query)
                 guard !Task.isCancelled, let self else { return }
                 state = people.isEmpty ? .empty : .results(people)
             } catch {

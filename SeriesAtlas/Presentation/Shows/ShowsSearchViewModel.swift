@@ -5,48 +5,38 @@ import Observation
 @Observable
 final class ShowsSearchViewModel {
     private let searchShowsUseCase: SearchShowsUseCaseProtocol
-    private let delay: SearchDelay
     private var searchTask: Task<Void, Never>?
 
     var state: SearchState<Show> = .idle
+    var query = ""
+    private(set) var submittedQuery = ""
 
-    var query = "" {
-        didSet {
-            guard query != oldValue else { return }
-            search(debounced: true)
-        }
+    init(searchShowsUseCase: SearchShowsUseCaseProtocol) {
+        self.searchShowsUseCase = searchShowsUseCase
     }
 
-    init(
-        searchShowsUseCase: SearchShowsUseCaseProtocol,
-        delay: SearchDelay = ContinuousSearchDelay()
-    ) {
-        self.searchShowsUseCase = searchShowsUseCase
-        self.delay = delay
+    func search() {
+        performSearch(query: query.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
     func retry() {
-        search(debounced: false)
+        performSearch(query: submittedQuery)
     }
 
-    private func search(debounced: Bool) {
+    private func performSearch(query: String) {
         searchTask?.cancel()
-        let currentQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        submittedQuery = query
 
-        guard !currentQuery.isEmpty else {
+        guard !query.isEmpty else {
             searchTask = nil
             state = .idle
             return
         }
 
         state = .loading
-        searchTask = Task { [weak self, searchShowsUseCase, delay] in
+        searchTask = Task { [weak self, searchShowsUseCase] in
             do {
-                if debounced {
-                    try await delay.wait()
-                }
-                try Task.checkCancellation()
-                let shows = try await searchShowsUseCase.execute(query: currentQuery)
+                let shows = try await searchShowsUseCase.execute(query: query)
                 guard !Task.isCancelled, let self else { return }
                 state = shows.isEmpty ? .empty : .results(shows)
             } catch {
