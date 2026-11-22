@@ -12,7 +12,7 @@ struct SearchStatusView<Item: Sendable>: View {
             ContentUnavailableView(
                 "Search \(title)",
                 systemImage: "magnifyingglass",
-                description: Text("Enter a name to start searching.")
+                description: Text("Enter a name and tap Search.")
             )
         case .loading:
             ProgressView("Searching…")

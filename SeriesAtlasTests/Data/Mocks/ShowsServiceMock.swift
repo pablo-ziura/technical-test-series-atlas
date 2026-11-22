@@ -8,13 +8,13 @@ final class ShowsServiceMock: ShowsServiceProtocol {
 
     var showsToReturn: [Show] = []
     var errorToThrow: Error?
-    var onSearch: (() -> Void)?
+    var onSearch: (() async -> Void)?
     private(set) var searchedQueries: [String] = []
 
     @MainActor
     func searchShows(query: String) async throws -> [Show] {
         searchedQueries.append(query)
-        onSearch?()
+        await onSearch?()
         if let errorToThrow { throw errorToThrow }
         return showsToReturn
     }

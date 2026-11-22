@@ -11,9 +11,20 @@ struct SeriesAtlasApp: App {
             preconditionFailure("Invalid TVmaze base URL.")
         }
 
-        let client = NetworkClient(baseURL: baseURL, session: URLSession(configuration: .default))
-        let showsRepository = ShowsRepository(showsService: ShowsService(networkClient: client))
-        let peopleRepository = PeopleRepository(peopleService: PeopleService(networkClient: client))
+        let configuration = URLSessionConfiguration.default
+        configuration.urlCache = nil
+
+        let client = NetworkClient(baseURL: baseURL, session: URLSession(configuration: configuration))
+
+        let showsRepository = ShowsRepository(
+            showsService: ShowsService(networkClient: client),
+            cache: QueryCache<[Show]>()
+        )
+
+        let peopleRepository = PeopleRepository(
+            peopleService: PeopleService(networkClient: client),
+            cache: QueryCache<[Person]>()
+        )
 
         coordinator = AppCoordinator(
             searchShowsUseCase: SearchShowsUseCase(showsRepository: showsRepository),
