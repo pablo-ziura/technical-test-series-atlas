@@ -55,10 +55,12 @@ Los tests unitarios utilizan **Swift Testing** y dependencias simuladas, sin acc
 - **Presentation:** estados, cancelación, respuestas fuera de orden, edición y reintento, controlando cuándo termina cada búsqueda.
 - **Red:** peticiones, respuestas HTTP, decodificación, cancelación y llamadas concurrentes.
 
-**Los tests funcionales de UI están pendientes.** El test XCTest existente solo lanza la app; no verifica búsqueda ni navegación al detalle.
+Los **cinco tests de UI con XCTest** cubren búsqueda y detalle de series con Search, búsqueda y detalle de personas desde el teclado, Retry de la consulta original tras editar el campo, navegación independiente entre pestañas y recuperación tras una búsqueda sin resultados.
+
+Se ejecutan en inglés con respuestas controladas, sin TVmaze ni imágenes remotas. Solo en Debug, `-ui-testing` inyecta un cliente de red simulado y `SERIES_ATLAS_UI_TEST_SCENARIO` selecciona `standard` o `retry`. Se mantienen los servicios, mapeos, repositorios y casos de uso reales, con estado independiente en cada lanzamiento.
 
 El workflow [iOS CI](.github/workflows/ios-ci.yml) compila y ejecuta los tests en las PR hacia `develop` y `main`, con el check **Build and tests** y cobertura informativa.
 
 ## Ejecución
 
-Abrir `SeriesAtlas.xcodeproj` con **Xcode 27.2**, seleccionar el esquema **SeriesAtlas** y un simulador con **iOS 18.6 o posterior**. `⌘R` ejecuta la app y `⌘U` ejecuta el plan compartido con los tests de la app, de red y el test de UI existente. No se necesitan credenciales ni configuración adicional.
+Abrir `SeriesAtlas.xcodeproj` con **Xcode 27.2**, seleccionar el esquema **SeriesAtlas** y un simulador con **iOS 18.6 o posterior**. `⌘R` ejecuta la app y `⌘U` ejecuta el plan compartido con los tests de la app, de red y de UI. No se necesitan credenciales ni configuración adicional.
