@@ -44,7 +44,7 @@ final class ShowsSearchViewModel {
                 if error is CancellationError || (error as? URLError)?.code == .cancelled {
                     state = .idle
                 } else {
-                    state = .failure("Unable to search shows. Please try again.")
+                    state = .failure(String(localized: .searchShowsError))
                 }
             }
         }

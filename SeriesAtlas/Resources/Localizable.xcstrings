@@ -1,0 +1,486 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "accessibility.rating": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rating: %1$(rating)@"
+          }
+        }
+      }
+    },
+    "app.name": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Series Atlas"
+          }
+        }
+      }
+    },
+    "common.notAvailable": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not available"
+          }
+        }
+      }
+    },
+    "common.retry": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        }
+      }
+    },
+    "common.search": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        }
+      }
+    },
+    "detail.birthday": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birthday"
+          }
+        }
+      }
+    },
+    "detail.country": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Country"
+          }
+        }
+      }
+    },
+    "detail.deathday": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deathday"
+          }
+        }
+      }
+    },
+    "detail.gender": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gender"
+          }
+        }
+      }
+    },
+    "detail.genres": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genres"
+          }
+        }
+      }
+    },
+    "detail.information": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Information"
+          }
+        }
+      }
+    },
+    "detail.language": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        }
+      }
+    },
+    "detail.rating": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rating"
+          }
+        }
+      }
+    },
+    "detail.source": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source"
+          }
+        }
+      }
+    },
+    "detail.summary": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summary"
+          }
+        }
+      }
+    },
+    "detail.viewOnTVmaze": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View on TVmaze"
+          }
+        }
+      }
+    },
+    "image.failed": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download failed"
+          }
+        }
+      }
+    },
+    "image.loaded": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loaded"
+          }
+        }
+      }
+    },
+    "image.loading": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading"
+          }
+        }
+      }
+    },
+    "image.missing": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No image URL"
+          }
+        }
+      }
+    },
+    "navigation.people": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "People"
+          }
+        }
+      }
+    },
+    "navigation.settings": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "navigation.shows": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows"
+          }
+        }
+      }
+    },
+    "search.empty.description": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No results found for “%1$(query)@”. Try a different name."
+          }
+        }
+      }
+    },
+    "search.empty.title": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No results"
+          }
+        }
+      }
+    },
+    "search.instructions": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a name and tap Search."
+          }
+        }
+      }
+    },
+    "search.loading": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Searching for “%1$(query)@”…"
+          }
+        }
+      }
+    },
+    "search.people.error": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to search people. Please try again."
+          }
+        }
+      }
+    },
+    "search.people.title": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search people"
+          }
+        }
+      }
+    },
+    "search.shows.error": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to search shows. Please try again."
+          }
+        }
+      }
+    },
+    "search.shows.title": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search shows"
+          }
+        }
+      }
+    },
+    "search.unavailable": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search unavailable"
+          }
+        }
+      }
+    },
+    "settings.app": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App"
+          }
+        }
+      }
+    },
+    "settings.attribution": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TV data provided by TVmaze"
+          }
+        }
+      }
+    },
+    "settings.build": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build"
+          }
+        }
+      }
+    },
+    "settings.dataSource": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data source"
+          }
+        }
+      }
+    },
+    "settings.licensing": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API terms and licensing"
+          }
+        }
+      }
+    },
+    "settings.tagline": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discover shows and people."
+          }
+        }
+      }
+    },
+    "settings.tvmaze": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TVmaze"
+          }
+        }
+      }
+    },
+    "settings.version": {
+      "extractionState": "manual",
+      "generatesSymbol": true,
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

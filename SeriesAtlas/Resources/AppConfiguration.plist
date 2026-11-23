@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>api</key>
+    <dict>
+        <key>baseURL</key>
+        <string>https://api.tvmaze.com</string>
+        <key>showsSearchPath</key>
+        <string>search/shows</string>
+        <key>peopleSearchPath</key>
+        <string>search/people</string>
+    </dict>
+    <key>links</key>
+    <dict>
+        <key>tvmazeURL</key>
+        <string>https://www.tvmaze.com</string>
+        <key>licensingURL</key>
+        <string>https://www.tvmaze.com/api#licensing</string>
+    </dict>
+</dict>
+</plist>
