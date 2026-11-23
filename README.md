@@ -1,92 +1,64 @@
 # Series Atlas
 
-Prueba técnica iOS para buscar series y personas con la API pública de [TVmaze](https://www.tvmaze.com/api) y consultar sus fichas.
+Prueba técnica iOS implementada en **Swift 6 y SwiftUI** para demostrar separación de responsabilidades, concurrencia con cancelación, caché temporal y tests unitarios.
 
-La app permite buscar series y personas y abrir sus fichas desde las pestañas **Shows** y **People**. **Settings** muestra versión, compilación y atribución. La interfaz está en inglés y utiliza componentes nativos de SwiftUI. Están implementados el paquete de red `SeriesAtlasNetwork`, las capas Domain, Data y Presentation y la caché temporal por consulta.
+La app permite buscar **series de televisión y personas relacionadas con el medio**, mostrar resultados en una lista y navegar a sus fichas. El detalle de series incluye nombre, géneros, idioma, valoración y sinopsis, mientras que el de personas incluye nombre, país, género y fechas disponibles. La interfaz está en inglés y contempla carga, ausencia de resultados, datos opcionales y errores recuperables.
 
-## Ejecutar el proyecto
+## Arquitectura
 
-Se necesita Xcode 27.2 y un simulador compatible. La app, sus tests y el paquete de red usan el modo de lenguaje **Swift 6**.
+Se combina **MVVM en Presentation** con separación en **Domain, Data y Presentation**, organizadas en carpetas dentro del target de la app. El cliente de red es un paquete SPM local, independiente de TVmaze. No hay dependencias externas.
 
-1. Abrir `SeriesAtlas.xcodeproj`.
-2. Seleccionar el esquema `SeriesAtlas` y un simulador compatible.
-3. Ejecutar con `⌘R`. Con `⌘U` se ejecuta el plan compartido `SeriesAtlas`, que incluye los tests de la app, de interfaz y del paquete de red.
+| Área | Responsabilidad |
+| --- | --- |
+| [Domain](SeriesAtlas/Domain) | Modelos, contratos de repositorio y casos de uso. No conoce SwiftUI, la red ni la caché. |
+| [Data](SeriesAtlas/Data) | Repositorios que deciden entre caché y red, servicios de TVmaze, DTOs y mapeos a modelos de dominio. |
+| [Presentation](SeriesAtlas/Presentation) | Vistas SwiftUI, ViewModels con estado de búsqueda y coordinadores de navegación. |
+| [SeriesAtlasNetwork](Packages/SeriesAtlasNetwork) | Cliente HTTP basado en `URLSession`, validación de respuestas y decodificación JSON. |
 
-La API no requiere claves ni credenciales.
+Data y Presentation dependen de Domain. El recorrido de una búsqueda sin caché es **Vista → ViewModel → Caso de uso → Repositorio → Servicio → Cliente de red**.
 
-La URL base de la API, las rutas de búsqueda y los enlaces de Settings se definen en `SeriesAtlas/Resources/AppConfiguration.plist`. `SeriesAtlasApp` carga y valida una configuración inmutable al arrancar e inyecta cada valor en su destinatario; un recurso ausente, incompleto o inválido produce un error explícito de configuración. Para otro target se puede incluir un recurso con el mismo nombre y valores distintos. Las URL recibidas de la API y los fixtures de tests y previews se mantienen independientes de esta configuración.
+[SeriesAtlasApp](SeriesAtlas/SeriesAtlasApp.swift) compone las dependencias y las inyecta por constructor. Los protocolos permiten sustituir repositorios, servicios y red en los tests. Los coordinadores construyen pantallas y conservan sus ViewModels, y `AppRouter` mantiene rutas tipadas y pilas de navegación independientes por pestaña.
 
-## Capa de red
+## Búsqueda y cancelación
 
-`Packages/SeriesAtlasNetwork` es un paquete SPM local sin dependencias externas. Expone `NetworkClientProtocol` y un `NetworkClient` inmutable para peticiones GET y respuestas `Decodable & Sendable`.
+La búsqueda se confirma con **Search** o desde el teclado. Editar el campo conserva la consulta vigente, y **Retry** repite la consulta fallida. Confirmar una consulta vacía cancela el trabajo pendiente y limpia el estado.
 
-El cliente recibe la URL base y una `URLSession` por constructor, codifica parámetros con `URLComponents` y valida respuestas HTTP. Conserva los errores de transporte y decodificación; la cancelación se propaga como `CancellationError`. Cada operación crea su propio decoder y procesa la respuesta fuera de `MainActor`.
+Cada ViewModel conserva su `Task` y la cancela al confirmar otra búsqueda. La cancelación se propaga hasta la petición de red y se comprueba antes de almacenar o publicar resultados: una respuesta o un error tardío no sobrescribe el estado actual. La cancelación no se muestra como error al usuario.
 
-Los tests usan Swift Testing y transportes controlados independientes. Cubren peticiones, respuestas, errores, cancelación y llamadas concurrentes, sin acceder a la red ni usar esperas arbitrarias.
+El flujo utiliza `async/await`, con estado de presentación aislado en `MainActor` y petición y decodificación de red fuera de él.
 
-El paquete figura como dependencia local en **Package Dependencies** y sus tests se ejecutan con SwiftPM. El esquema de la app también declara un target `SeriesAtlasNetworkTests`, pero actualmente no tiene fuentes asignadas y ejecuta cero tests; queda pendiente corregir esa configuración en Xcode. La ejecución de `swift test` sigue siendo necesaria para validar el paquete.
+## Caché
 
-## Capa de dominio
+[QueryCache](SeriesAtlas/Data/Cache/QueryCache.swift) protege los resultados en memoria mediante un actor. Series y personas utilizan instancias independientes.
 
-`SeriesAtlas/Domain` contiene `Show`, `Person`, los contratos `ShowsRepositoryProtocol` y `PeopleRepositoryProtocol` y los casos de uso `SearchShowsUseCase` y `SearchPeopleUseCase` con sus protocolos. Se organiza en carpetas `Entities`, `Repositories` y `UseCases`, con un tipo por archivo y sin dependencias de SwiftUI ni del paquete de red. Los modelos y los contratos son `Sendable`.
+- Las claves recortan espacios y saltos de línea exteriores y pasan a minúsculas.
+- Las respuestas correctas, incluidas las vacías, se conservan **tres minutos desde su almacenamiento**. Un acierto evita la red y no renueva el plazo.
+- Al alcanzar la expiración se consulta la red y se almacena la nueva respuesta correcta.
+- No se guardan errores ni respuestas canceladas. El tiempo es inyectable para probar la expiración sin esperas reales.
 
-Los modelos inmutables reúnen los datos de listado y detalle. `Show` conserva nombre, sinopsis en texto, géneros, idioma, valoración, imagen y enlace de atribución a TVmaze. `Person` conserva nombre, país, género, nacimiento, fallecimiento, imagen y enlace de atribución. Ambos respetan los datos opcionales; las fechas de personas se mantienen como cadenas tal como llegan de la API. Data convierte la sinopsis HTML de las series en texto legible.
+No hay persistencia en disco ni agrupación de peticiones simultáneas.
 
-Cada caso de uso recibe su repositorio por constructor y transmite la consulta sin modificarla, incluidas las consultas vacías. Propaga resultados y errores, y comprueba la cancelación después de recibir la respuesta. Sus tests usan Swift Testing, con un mock configurable y una instancia independiente del caso de uso por test. La cancelación se controla desde el mock, sin esperas temporales.
+## API y datos
 
-## Capa de datos
+Se eligió [TVmaze](https://www.tvmaze.com/api) principalmente porque su API pública **no requiere API key**. Se utilizan `GET /search/shows?q={query}` y `GET /search/people?q={query}`.
 
-`SeriesAtlas/Data` contiene DTOs, mapeos, servicios y repositorios. `ShowsService` y `PeopleService` reciben `NetworkClientProtocol`, consultan `search/shows` y `search/people` respectivamente y devuelven modelos en el orden de la respuesta. Conservan los opcionales y prefieren la imagen `medium`, con respaldo en `original`. Una imagen inválida se omite; un enlace obligatorio inválido produce un error. Para las series, los géneros ausentes se convierten en una lista vacía y la sinopsis se convierte con el importador HTML nativo en `MainActor`. El mapeo de personas es síncrono y conserva el nombre del país. Los servicios conservan el aislamiento del llamador; `NetworkClient` ejecuta la petición y la decodificación fuera del actor del llamador.
+El detalle aprovecha el modelo obtenido en la búsqueda, sin otra petición. Data convierte la sinopsis HTML en texto legible y conserva los valores opcionales. Las URL y rutas se definen en [AppConfiguration.plist](SeriesAtlas/Resources/AppConfiguration.plist), se validan al arrancar y se inyectan en sus destinatarios.
 
-`ShowsRepository` y `PeopleRepository` reciben sus servicios y una caché por constructor. Cada uno conserva su propia instancia del actor `QueryCache`, compartiendo el mecanismo pero no los datos. Las claves recortan espacios y saltos de línea exteriores y pasan a minúsculas, sin alterar espacios interiores; el servicio recibe la consulta original. Las respuestas correctas, incluidas las vacías, se guardan en memoria durante 180 segundos desde su almacenamiento. Un acierto evita el servicio sin renovar la expiración; al alcanzar ese instante se consulta de nuevo. Los errores y las respuestas canceladas no se almacenan, y un fallo de refresco se propaga sin devolver datos expirados. La función de tiempo es inyectable y síncrona, lo que permite probar los límites sin esperas reales. No hay persistencia ni agrupación de peticiones concurrentes. Los contratos se definen en Domain y Data proporciona sus implementaciones.
+Cada ficha enlaza a TVmaze como atribución. Sus datos están sujetos a las [condiciones de uso y licencia CC BY-SA](https://www.tvmaze.com/api#licensing).
 
-La cancelación se comprueba al entrar y salir del cliente de red, al terminar el mapeo en los servicios —también con resultados vacíos— y al retomar el caso de uso tras esperar al repositorio. Los servicios reconocen también `URLError.cancelled` como `CancellationError`. Cada repositorio comprueba una vez tras leer la caché; el actor comprueba inmediatamente antes de escribir, sin suspensiones internas. Los ViewModels descartan resultados y errores cancelados antes de actualizar la pantalla. La conversión HTML síncrona que ya haya empezado termina antes de poder descartar su resultado.
+## Tests
 
-La sesión de TVmaze se configura en `SeriesAtlasApp` con `urlCache = nil`, que [desactiva la caché HTTP local](https://developer.apple.com/documentation/foundation/urlsessionconfiguration/urlcache). Así, una consulta ausente o expirada llega a la red y no reutiliza silenciosamente una respuesta de `URLCache`. Esta configuración no modifica el cliente de red genérico ni controla las cachés del servidor.
+Los tests unitarios utilizan **Swift Testing** y dependencias simuladas, sin acceder a la API real:
 
-## Arquitectura: MVVM y capas
+- **Domain:** casos de uso con repositorios mockeados; resultados, errores y cancelación.
+- **Data:** caché válida sin red, expiración con tiempo controlado, normalización y consultas independientes; mapeos y errores.
+- **Presentation:** estados, cancelación, respuestas fuera de orden, edición y reintento, controlando cuándo termina cada búsqueda.
+- **Red:** peticiones, respuestas HTTP, decodificación, cancelación y llamadas concurrentes.
 
-El flujo de búsqueda es **Vista → ViewModel → Caso de uso → Repositorio → Servicio → Cliente de red**, con inyección por constructor:
+**Los tests funcionales de UI están pendientes.** El test XCTest existente solo lanza la app; no verifica búsqueda ni navegación al detalle.
 
-- **Domain, implementado:** modelos, contratos de repositorio y casos de uso de búsqueda de series y personas.
-- **Data, implementada:** servicios de TVmaze, DTOs, mapeos, implementaciones de los contratos de repositorio de Domain y caché temporal; utiliza el paquete de red.
-- **Presentation:** vistas SwiftUI, ViewModels de búsqueda y coordinadores por feature, aislados en `MainActor` y dependientes de Domain.
+El workflow [iOS CI](.github/workflows/ios-ci.yml) compila y ejecuta los tests en las PR hacia `develop` y `main`, con el check **Build and tests** y cobertura informativa.
 
-`SeriesAtlasApp` compone explícitamente cliente, servicios, cachés, repositorios y casos de uso. `AppCoordinator` conserva el router y los coordinadores de Shows, People y Settings, manteniendo las cachés disponibles entre búsquedas durante la sesión. Los coordinadores construyen pantallas y conservan sus ViewModels; `AppRouter` mantiene la pestaña seleccionada y las pilas tipadas de Shows y People. Cada pestaña tiene su propio `NavigationStack` y conserva consulta, resultados y detalle al cambiar de sección. Los detalles reciben el modelo seleccionado y no necesitan otra petición ni un ViewModel propio.
+## Ejecución
 
-La búsqueda empieza al pulsar el botón **Search** o confirmar desde el teclado, recortando espacios y saltos de línea exteriores. El campo de texto tiene borde y el botón permanece disponible durante la carga para poder confirmar otra búsqueda. Editar o vaciar el campo conserva la petición y el estado de la última consulta confirmada. Confirmar otra consulta cancela la anterior y descarta sus resultados y errores tardíos; confirmar una consulta vacía vuelve al estado inicial. Se muestran estados inicial, carga, resultados, sin resultados y error; **Retry** repite la consulta fallida aunque el texto del campo haya cambiado. Una cancelación no se presenta como error. Cambiar de pestaña permite terminar la búsqueda vigente y volver del detalle no repite la petición.
-
-## API
-
-Los servicios utilizan `GET /search/shows?q={query}` y `GET /search/people?q={query}` al recibir un cliente configurado con la URL base `https://api.tvmaze.com`. Las respuestas incluyen los datos de los modelos de detalle, sin peticiones adicionales.
-
-Los datos están sujetos a la licencia CC BY-SA de TVmaze. Cada ficha incluirá un enlace a la página original como atribución. Véanse las [condiciones de uso de la API](https://www.tvmaze.com/api#licensing).
-
-## Validación e integración continua
-
-Para ejecutar en local la misma selección de tests que en CI:
-
-```sh
-swift test --package-path Packages/SeriesAtlasNetwork --enable-code-coverage
-
-xcodebuild -project SeriesAtlas.xcodeproj -scheme SeriesAtlas \
-  -configuration Debug \
-  -destination 'platform=iOS Simulator,name=iPhone 17,OS=27.2' \
-  -enableCodeCoverage YES \
-  -parallel-testing-enabled NO \
-  CODE_SIGNING_ALLOWED=NO test
-```
-
-El primer comando ejecuta los tests nativos del paquete en macOS. El segundo necesita un iPhone 17 con iOS 27.2 instalado y ejecuta el mismo plan que `⌘U`: `SeriesAtlasTests`, `SeriesAtlasUITests` y `SeriesAtlasNetworkTests`. Los tests unitarios cubren casos de uso, repositorios, servicios, mapeos, errores y cancelación, con red simulada. La caché se prueba con servicios simulados y tiempo controlado: aciertos, expiración exacta, normalización, consultas independientes, resultados vacíos y ausencia de almacenamiento tras errores o cancelación. Los tests unitarios de Presentation cubren estados de búsqueda, respuestas y errores fuera de orden, cancelación al confirmar otra consulta o solo espacios, edición del campo y Retry de la consulta confirmada. Usan casos de uso simulados con continuaciones y esperan la finalización de las tareas, sin red ni esperas temporales.
-
-El test de interfaz existente solo comprueba el lanzamiento de la app; no acredita cobertura funcional de búsqueda ni detalle.
-
-El workflow [iOS CI](.github/workflows/ios-ci.yml) mantiene el check **Build and tests** en las PR hacia `develop` y `main`. Usa Xcode 27.2, ejecuta los tests nativos del paquete y compila la app y los tests con `build-for-testing` antes de usar `test-without-building`. Comprueba que se hayan generado todos los bundles del plan para detectar targets omitidos por Xcode.
-
-La cobertura es informativa, sin umbral obligatorio. Los logs, la cobertura JSON del paquete, el informe de cobertura de la app y los resultados `.xcresult` se conservan durante siete días. Las ejecuciones sustituidas se cancelan y cada fase tiene un tiempo máximo. Los resultados observados en GitHub se consultan en la PR o en Actions; también se admite ejecución manual cuando el workflow esté en la rama predeterminada.
-
-## Flujo de trabajo
-
-El desarrollo se realiza en ramas `feature/<description>` creadas desde `develop`, con integración mediante PR. La integración en `main` también se realiza mediante PR.
-
-Las protecciones de ambas ramas se configuran en GitHub: check **Build and tests** satisfactorio, rama actualizada y bloqueo de borrados y force pushes. Son independientes del fichero del workflow.
+Abrir `SeriesAtlas.xcodeproj` con **Xcode 27.2**, seleccionar el esquema **SeriesAtlas** y un simulador con **iOS 18.6 o posterior**. `⌘R` ejecuta la app y `⌘U` ejecuta el plan compartido con los tests de la app, de red y el test de UI existente. No se necesitan credenciales ni configuración adicional.
