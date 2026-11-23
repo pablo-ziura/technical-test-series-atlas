@@ -42,7 +42,7 @@ No hay persistencia en disco ni agrupación de peticiones simultáneas.
 
 Se eligió [TVmaze](https://www.tvmaze.com/api) principalmente porque su API pública **no requiere API key**. Se utilizan `GET /search/shows?q={query}` y `GET /search/people?q={query}`.
 
-El detalle aprovecha el modelo obtenido en la búsqueda, sin otra petición. Data convierte la sinopsis HTML en texto legible y conserva los valores opcionales. Las URL y rutas se definen en [AppConfiguration.plist](SeriesAtlas/Resources/AppConfiguration.plist), se validan al arrancar y se inyectan en sus destinatarios.
+El detalle aprovecha el modelo obtenido en la búsqueda, sin otra petición. Data convierte la sinopsis HTML en texto legible mediante el importador asíncrono de WebKit, sin bloquear el hilo principal, y conserva los valores opcionales. Las URL y rutas se definen en [AppConfiguration.plist](SeriesAtlas/Resources/AppConfiguration.plist), se validan al arrancar y se inyectan en sus destinatarios.
 
 Cada ficha enlaza a TVmaze como atribución. Sus datos están sujetos a las [condiciones de uso y licencia CC BY-SA](https://www.tvmaze.com/api#licensing).
 
@@ -55,10 +55,32 @@ Los tests unitarios utilizan **Swift Testing** y dependencias simuladas, sin acc
 - **Presentation:** estados, cancelación, respuestas fuera de orden, edición y reintento, controlando cuándo termina cada búsqueda.
 - **Red:** peticiones, respuestas HTTP, decodificación, cancelación y llamadas concurrentes.
 
-**Los tests funcionales de UI están pendientes.** El test XCTest existente solo lanza la app; no verifica búsqueda ni navegación al detalle.
+Los **cinco tests de UI con XCTest** cubren búsqueda y detalle de series con Search, búsqueda y detalle de personas desde el teclado, Retry de la consulta original tras editar el campo, navegación independiente entre pestañas y recuperación tras una búsqueda sin resultados.
 
-El workflow [iOS CI](.github/workflows/ios-ci.yml) compila y ejecuta los tests en las PR hacia `develop` y `main`, con el check **Build and tests** y cobertura informativa.
+Se ejecutan en inglés con respuestas controladas, sin TVmaze ni imágenes remotas. Solo en Debug, `-ui-testing` inyecta un cliente de red simulado y `SERIES_ATLAS_UI_TEST_SCENARIO` selecciona `standard` o `retry`. Se mantienen los servicios, mapeos, repositorios y casos de uso reales, con estado independiente en cada lanzamiento.
+
+El workflow [iOS CI](.github/workflows/ios-ci.yml) ejecuta en paralelo los tests nativos del paquete de red, los unitarios de iOS y los de UI en las PR hacia `develop` y `main`. Cada ejecución de iOS usa su propio runner y simulador; ambas compilan el plan completo para mantener el aislamiento sin transferir binarios. El check **Build and tests** agrega los resultados y solo pasa si todos los jobs terminan correctamente. La cobertura es informativa y los diagnósticos de cada suite se conservan siete días.
+
+Para ejecutar en local la misma selección particionada que en CI:
+
+```sh
+swift test --package-path Packages/SeriesAtlasNetwork --enable-code-coverage
+
+xcodebuild -project SeriesAtlas.xcodeproj -scheme SeriesAtlas \
+  -configuration Debug \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=27.2' \
+  -enableCodeCoverage YES -parallel-testing-enabled NO \
+  -skip-testing:SeriesAtlasUITests CODE_SIGNING_ALLOWED=NO test
+
+xcodebuild -project SeriesAtlas.xcodeproj -scheme SeriesAtlas \
+  -configuration Debug \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=27.2' \
+  -enableCodeCoverage YES -parallel-testing-enabled NO \
+  -only-testing:SeriesAtlasUITests CODE_SIGNING_ALLOWED=NO test
+```
+
+La unión de las dos ejecuciones de iOS incluye todos los tests habilitados del plan compartido.
 
 ## Ejecución
 
-Abrir `SeriesAtlas.xcodeproj` con **Xcode 27.2**, seleccionar el esquema **SeriesAtlas** y un simulador con **iOS 18.6 o posterior**. `⌘R` ejecuta la app y `⌘U` ejecuta el plan compartido con los tests de la app, de red y el test de UI existente. No se necesitan credenciales ni configuración adicional.
+Abrir `SeriesAtlas.xcodeproj` con **Xcode 27.2**, seleccionar el esquema **SeriesAtlas** y un simulador con **iOS 18.6 o posterior**. `⌘R` ejecuta la app y `⌘U` ejecuta el plan compartido con los tests de la app, de red y de UI. No se necesitan credenciales ni configuración adicional.

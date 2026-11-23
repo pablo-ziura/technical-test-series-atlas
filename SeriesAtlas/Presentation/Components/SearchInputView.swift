@@ -19,12 +19,14 @@ struct SearchInputView: View {
         layout {
             TextField(String(localized: placeholder), text: $query)
                 .textFieldStyle(.roundedBorder)
+                .accessibilityIdentifier("search.query")
                 .autocorrectionDisabled()
                 .submitLabel(.search)
                 .focused($isFocused)
                 .onSubmit(submitSearch)
 
             Button(.commonSearch, action: submitSearch)
+                .accessibilityIdentifier("search.submit")
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
         }
