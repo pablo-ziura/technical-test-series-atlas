@@ -42,7 +42,7 @@ No hay persistencia en disco ni agrupación de peticiones simultáneas.
 
 Se eligió [TVmaze](https://www.tvmaze.com/api) principalmente porque su API pública **no requiere API key**. Se utilizan `GET /search/shows?q={query}` y `GET /search/people?q={query}`.
 
-El detalle aprovecha el modelo obtenido en la búsqueda, sin otra petición. Data convierte la sinopsis HTML en texto legible y conserva los valores opcionales. Las URL y rutas se definen en [AppConfiguration.plist](SeriesAtlas/Resources/AppConfiguration.plist), se validan al arrancar y se inyectan en sus destinatarios.
+El detalle aprovecha el modelo obtenido en la búsqueda, sin otra petición. Data convierte la sinopsis HTML en texto legible mediante el importador asíncrono de WebKit, sin bloquear el hilo principal, y conserva los valores opcionales. Las URL y rutas se definen en [AppConfiguration.plist](SeriesAtlas/Resources/AppConfiguration.plist), se validan al arrancar y se inyectan en sus destinatarios.
 
 Cada ficha enlaza a TVmaze como atribución. Sus datos están sujetos a las [condiciones de uso y licencia CC BY-SA](https://www.tvmaze.com/api#licensing).
 
