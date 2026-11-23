@@ -3,31 +3,62 @@ import SwiftUI
 struct SearchStatusView<Item: Sendable>: View {
     let state: SearchState<Item>
     let query: String
-    let title: String
+    let idleTitle: LocalizedStringResource
     let retry: () -> Void
 
     var body: some View {
+        if case .results = state {
+            EmptyView()
+        } else {
+            ScrollView {
+                statusContent
+                    .frame(maxWidth: .infinity)
+                    .padding()
+            }
+            .defaultScrollAnchor(.center, for: .alignment)
+        }
+    }
+
+    @ViewBuilder
+    private var statusContent: some View {
         switch state {
         case .idle:
             ContentUnavailableView(
-                "Search \(title)",
+                idleTitle,
                 systemImage: "magnifyingglass",
-                description: Text("Enter a name and tap Search.")
+                description: Text(.searchInstructions)
             )
         case .loading:
-            ProgressView("Searching…")
+            ProgressView(.searchLoading(query: query))
+                .controlSize(.large)
+                .multilineTextAlignment(.center)
         case .empty:
-            ContentUnavailableView.search(text: query)
+            ContentUnavailableView(
+                .searchEmptyTitle,
+                systemImage: "magnifyingglass",
+                description: Text(.searchEmptyDescription(query: query))
+            )
         case let .failure(message):
             ContentUnavailableView {
-                Label("Search unavailable", systemImage: "exclamationmark.triangle")
+                Label(.searchUnavailable, systemImage: "exclamationmark.triangle")
             } description: {
                 Text(message)
             } actions: {
-                Button("Retry", action: retry)
+                Button(.commonRetry, action: retry)
+                    .buttonStyle(.borderedProminent)
             }
         case .results:
             EmptyView()
         }
     }
+}
+
+#Preview("Search error") {
+    SearchStatusView<Show>(
+        state: .failure(String(localized: .searchShowsError)),
+        query: "Atlas",
+        idleTitle: .searchShowsTitle,
+        retry: {}
+    )
+    .tint(.blue)
 }

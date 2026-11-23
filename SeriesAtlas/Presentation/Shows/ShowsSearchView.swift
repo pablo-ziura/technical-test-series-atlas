@@ -1,49 +1,55 @@
 import SwiftUI
 
 struct ShowsSearchView: View {
-    @Environment(AppRouter.self) private var router
     @Environment(ShowsSearchViewModel.self) private var viewModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                TextField("Search shows", text: viewModel.bindable.query)
-                    .textFieldStyle(.roundedBorder)
-                    .autocorrectionDisabled()
-                    .submitLabel(.search)
-                    .onSubmit { viewModel.search() }
-
-                Button("Search", action: viewModel.search)
-                    .buttonStyle(.borderedProminent)
-            }
-            .padding()
+        VStack(spacing: .zero) {
+            SearchInputView(
+                query: viewModel.bindable.query,
+                placeholder: .searchShowsTitle,
+                search: viewModel.search
+            )
 
             List {
                 if case let .results(shows) = viewModel.state {
                     ForEach(shows) { show in
-                        Button {
-                            router.showDetails(for: show)
-                        } label: {
-                            VStack(alignment: .leading) {
-                                Text(show.name)
-                                Text(show.language ?? "Not available")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                        NavigationLink(value: ShowsRoute.detail(show)) {
+                            SearchResultRow(name: show.name, imageURL: show.imageURL, kind: .show) {
+                                Text(show.language ?? String(localized: .commonNotAvailable))
+                                if !show.genres.isEmpty {
+                                    Text(show.genres.joined(separator: ", "))
+                                }
+                                if let rating = show.rating {
+                                    Label {
+                                        Text(rating.formatted())
+                                    } icon: {
+                                        Image(systemName: "star.fill")
+                                    }
+                                    .accessibilityLabel(Text(.accessibilityRating(rating: rating.formatted())))
+                                }
                             }
                         }
                         .accessibilityIdentifier("shows.result.\(show.id)")
                     }
                 }
             }
+            .listStyle(.insetGrouped)
+            .scrollDismissesKeyboard(.interactively)
             .overlay {
                 SearchStatusView(
                     state: viewModel.state,
                     query: viewModel.submittedQuery,
-                    title: "Shows",
+                    idleTitle: .searchShowsTitle,
                     retry: viewModel.retry
                 )
             }
         }
-        .navigationTitle("Shows")
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle(.navigationShows)
     }
+}
+
+#Preview("Shows") {
+    UIPreviewData.makeCoordinator().makeRootView()
 }

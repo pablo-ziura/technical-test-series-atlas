@@ -1,49 +1,44 @@
 import SwiftUI
 
 struct PeopleSearchView: View {
-    @Environment(AppRouter.self) private var router
     @Environment(PeopleSearchViewModel.self) private var viewModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                TextField("Search people", text: viewModel.bindable.query)
-                    .textFieldStyle(.roundedBorder)
-                    .autocorrectionDisabled()
-                    .submitLabel(.search)
-                    .onSubmit { viewModel.search() }
-
-                Button("Search", action: viewModel.search)
-                    .buttonStyle(.borderedProminent)
-            }
-            .padding()
+        VStack(spacing: .zero) {
+            SearchInputView(
+                query: viewModel.bindable.query,
+                placeholder: .searchPeopleTitle,
+                search: viewModel.search
+            )
 
             List {
                 if case let .results(people) = viewModel.state {
                     ForEach(people) { person in
-                        Button {
-                            router.showDetails(for: person)
-                        } label: {
-                            VStack(alignment: .leading) {
-                                Text(person.name)
-                                Text(person.country ?? "Not available")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                        NavigationLink(value: PeopleRoute.detail(person)) {
+                            SearchResultRow(name: person.name, imageURL: person.imageURL, kind: .person) {
+                                Text(person.country ?? String(localized: .commonNotAvailable))
                             }
                         }
                         .accessibilityIdentifier("people.result.\(person.id)")
                     }
                 }
             }
+            .listStyle(.insetGrouped)
+            .scrollDismissesKeyboard(.interactively)
             .overlay {
                 SearchStatusView(
                     state: viewModel.state,
                     query: viewModel.submittedQuery,
-                    title: "People",
+                    idleTitle: .searchPeopleTitle,
                     retry: viewModel.retry
                 )
             }
         }
-        .navigationTitle("People")
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle(.navigationPeople)
     }
+}
+
+#Preview("People") {
+    UIPreviewData.makeCoordinator(selectedTab: .people).makeRootView()
 }

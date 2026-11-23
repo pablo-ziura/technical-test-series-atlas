@@ -10,12 +10,14 @@ final class AppCoordinator {
 
     init(
         searchShowsUseCase: any SearchShowsUseCaseProtocol,
-        searchPeopleUseCase: any SearchPeopleUseCaseProtocol
+        searchPeopleUseCase: any SearchPeopleUseCaseProtocol,
+        tvmazeURL: URL,
+        licensingURL: URL
     ) {
         router = AppRouter()
         showsCoordinator = ShowsCoordinator(searchShowsUseCase: searchShowsUseCase)
         peopleCoordinator = PeopleCoordinator(searchPeopleUseCase: searchPeopleUseCase)
-        settingsCoordinator = SettingsCoordinator()
+        settingsCoordinator = SettingsCoordinator(tvmazeURL: tvmazeURL, licensingURL: licensingURL)
     }
 
     func makeRootView() -> some View {

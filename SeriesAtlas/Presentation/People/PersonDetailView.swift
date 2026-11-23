@@ -6,25 +6,34 @@ struct PersonDetailView: View {
     var body: some View {
         List {
             Section {
-                DetailImageView(url: person.imageURL, placeholder: "person.crop.rectangle")
+                DetailHeaderView(name: person.name, imageURL: person.imageURL, kind: .person)
             }
 
-            Section("Information") {
-                LabeledContent("Name", value: person.name)
-                LabeledContent("Country", value: person.country ?? "Not available")
-                LabeledContent("Gender", value: person.gender ?? "Not available")
-                LabeledContent("Birthday", value: person.birthday ?? "Not available")
+            Section(.detailInformation) {
+                LabeledContent(String(localized: .detailCountry), value: person.country ?? String(localized: .commonNotAvailable))
+                LabeledContent(String(localized: .detailGender), value: person.gender ?? String(localized: .commonNotAvailable))
+                LabeledContent(String(localized: .detailBirthday), value: person.birthday ?? String(localized: .commonNotAvailable))
                 if let deathday = person.deathday {
-                    LabeledContent("Deathday", value: deathday)
+                    LabeledContent(String(localized: .detailDeathday), value: deathday)
                 }
             }
 
-            Section("Source") {
-                Link("View on TVmaze", destination: person.tvmazeURL)
+            Section(.detailSource) {
+                Link(destination: person.tvmazeURL) {
+                    Label(.detailViewOnTVmaze, systemImage: "arrow.up.right.square")
+                }
             }
         }
+        .listStyle(.insetGrouped)
         .accessibilityIdentifier("person.detail")
         .navigationTitle(person.name)
         .navigationBarTitleDisplayMode(.inline)
     }
+}
+
+#Preview("Person detail") {
+    NavigationStack {
+        PersonDetailView(person: UIPreviewData.person)
+    }
+    .tint(.blue)
 }

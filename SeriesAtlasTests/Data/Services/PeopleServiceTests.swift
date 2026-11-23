@@ -7,10 +7,11 @@ import Testing
 final class PeopleServiceTests {
     private let mockNetworkClient: NetworkClientMock
     private let peopleService: PeopleService
+    private let searchPath = "test/people/search"
 
     init() {
         mockNetworkClient = NetworkClientMock()
-        peopleService = PeopleService(networkClient: mockNetworkClient)
+        peopleService = PeopleService(networkClient: mockNetworkClient, searchPath: searchPath)
     }
 
     @Test
@@ -21,7 +22,7 @@ final class PeopleServiceTests {
         let result = try await peopleService.searchPeople(query: "Alex Example & friends")
 
         #expect(result == expectedPeople)
-        #expect(mockNetworkClient.endpoints == ["search/people"])
+        #expect(mockNetworkClient.endpoints == [searchPath])
         #expect(mockNetworkClient.params == ["q": "Alex Example & friends"])
     }
 
@@ -100,7 +101,7 @@ final class PeopleServiceTests {
         defer { mockNetworkClient.onGet = nil }
 
         await #expect(throws: CancellationError.self) { try await task.value }
-        #expect(mockNetworkClient.endpoints == ["search/people"])
+        #expect(mockNetworkClient.endpoints == [searchPath])
     }
 
     @Test(arguments: [" \nAlex  Example\t ", "", " \t\n\r "])
@@ -113,7 +114,7 @@ final class PeopleServiceTests {
         let result = try await useCase.execute(query: query)
 
         #expect(result == expectedPeople)
-        #expect(mockNetworkClient.endpoints == ["search/people"])
+        #expect(mockNetworkClient.endpoints == [searchPath])
         #expect(mockNetworkClient.params == ["q": query])
     }
 }
