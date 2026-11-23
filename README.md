@@ -59,7 +59,27 @@ Los **cinco tests de UI con XCTest** cubren búsqueda y detalle de series con Se
 
 Se ejecutan en inglés con respuestas controladas, sin TVmaze ni imágenes remotas. Solo en Debug, `-ui-testing` inyecta un cliente de red simulado y `SERIES_ATLAS_UI_TEST_SCENARIO` selecciona `standard` o `retry`. Se mantienen los servicios, mapeos, repositorios y casos de uso reales, con estado independiente en cada lanzamiento.
 
-El workflow [iOS CI](.github/workflows/ios-ci.yml) compila y ejecuta los tests en las PR hacia `develop` y `main`, con el check **Build and tests** y cobertura informativa.
+El workflow [iOS CI](.github/workflows/ios-ci.yml) ejecuta en paralelo los tests nativos del paquete de red, los unitarios de iOS y los de UI en las PR hacia `develop` y `main`. Cada ejecución de iOS usa su propio runner y simulador; ambas compilan el plan completo para mantener el aislamiento sin transferir binarios. El check **Build and tests** agrega los resultados y solo pasa si todos los jobs terminan correctamente. La cobertura es informativa y los diagnósticos de cada suite se conservan siete días.
+
+Para ejecutar en local la misma selección particionada que en CI:
+
+```sh
+swift test --package-path Packages/SeriesAtlasNetwork --enable-code-coverage
+
+xcodebuild -project SeriesAtlas.xcodeproj -scheme SeriesAtlas \
+  -configuration Debug \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=27.2' \
+  -enableCodeCoverage YES -parallel-testing-enabled NO \
+  -skip-testing:SeriesAtlasUITests CODE_SIGNING_ALLOWED=NO test
+
+xcodebuild -project SeriesAtlas.xcodeproj -scheme SeriesAtlas \
+  -configuration Debug \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=27.2' \
+  -enableCodeCoverage YES -parallel-testing-enabled NO \
+  -only-testing:SeriesAtlasUITests CODE_SIGNING_ALLOWED=NO test
+```
+
+La unión de las dos ejecuciones de iOS incluye todos los tests habilitados del plan compartido.
 
 ## Ejecución
 
