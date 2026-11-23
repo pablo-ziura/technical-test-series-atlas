@@ -30,6 +30,12 @@
       ],
     }, {
       "kind": "group",
+      "name": "Frameworks",
+      "children": [
+        { "path": "<DEVELOPER>/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.2.sdk/System/Library/Frameworks/WebKit.framework", "target-membership": [ "SeriesAtlas/frameworks" ] },
+      ],
+    }, {
+      "kind": "group",
       "name": "Products",
       "children": [
         { "path": "<PRODUCTS>/SeriesAtlas.app", "id": "DA2F333D30AEFE6500C72702", "type": "wrapper.application", "index": false },
