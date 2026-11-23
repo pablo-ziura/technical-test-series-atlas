@@ -3,15 +3,17 @@ import SeriesAtlasNetwork
 
 struct ShowsService: ShowsServiceProtocol {
     private let networkClient: NetworkClientProtocol
+    private let searchPath: String
 
-    init(networkClient: NetworkClientProtocol) {
+    init(networkClient: NetworkClientProtocol, searchPath: String) {
         self.networkClient = networkClient
+        self.searchPath = searchPath
     }
 
     func searchShows(query: String) async throws -> [Show] {
         do {
             let results: [ShowSearchResultDTO] = try await networkClient.get(
-                endpoint: "search/shows",
+                endpoint: searchPath,
                 params: ["q": query]
             )
             var shows: [Show] = []

@@ -10,7 +10,7 @@ struct MainTabView: View {
         @Bindable var router = router
 
         TabView(selection: $router.selectedTab) {
-            Tab("Shows", systemImage: "tv", value: AppTab.shows) {
+            Tab(String(localized: .navigationShows), systemImage: "tv", value: AppTab.shows) {
                 NavigationStack(path: $router.showsPath) {
                     showsCoordinator.makeSearchView()
                         .navigationDestination(for: ShowsRoute.self) { route in
@@ -19,7 +19,7 @@ struct MainTabView: View {
                 }
             }
 
-            Tab("People", systemImage: "person.2", value: AppTab.people) {
+            Tab(String(localized: .navigationPeople), systemImage: "person.2", value: AppTab.people) {
                 NavigationStack(path: $router.peoplePath) {
                     peopleCoordinator.makeSearchView()
                         .navigationDestination(for: PeopleRoute.self) { route in
@@ -28,11 +28,12 @@ struct MainTabView: View {
                 }
             }
 
-            Tab("Settings", systemImage: "gear", value: AppTab.settings) {
+            Tab(String(localized: .navigationSettings), systemImage: "gear", value: AppTab.settings) {
                 NavigationStack {
                     settingsCoordinator.makeSettingsView()
                 }
             }
         }
+        .tint(.blue)
     }
 }

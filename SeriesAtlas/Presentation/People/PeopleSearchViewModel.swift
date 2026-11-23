@@ -44,7 +44,7 @@ final class PeopleSearchViewModel {
                 if error is CancellationError || (error as? URLError)?.code == .cancelled {
                     state = .idle
                 } else {
-                    state = .failure("Unable to search people. Please try again.")
+                    state = .failure(String(localized: .searchPeopleError))
                 }
             }
         }

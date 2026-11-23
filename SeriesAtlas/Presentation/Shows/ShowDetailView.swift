@@ -6,26 +6,35 @@ struct ShowDetailView: View {
     var body: some View {
         List {
             Section {
-                DetailImageView(url: show.imageURL, placeholder: "tv")
+                DetailHeaderView(name: show.name, imageURL: show.imageURL, kind: .show)
             }
 
-            Section("Information") {
-                LabeledContent("Name", value: show.name)
-                LabeledContent("Genres", value: show.genres.isEmpty ? "Not available" : show.genres.joined(separator: ", "))
-                LabeledContent("Language", value: show.language ?? "Not available")
-                LabeledContent("Rating", value: show.rating.map { $0.formatted() } ?? "Not available")
+            Section(.detailInformation) {
+                LabeledContent(String(localized: .detailGenres), value: show.genres.isEmpty ? String(localized: .commonNotAvailable) : show.genres.joined(separator: ", "))
+                LabeledContent(String(localized: .detailLanguage), value: show.language ?? String(localized: .commonNotAvailable))
+                LabeledContent(String(localized: .detailRating), value: show.rating.map { $0.formatted() } ?? String(localized: .commonNotAvailable))
             }
 
-            Section("Summary") {
-                Text(show.summary ?? "Not available")
+            Section(.detailSummary) {
+                Text(show.summary ?? String(localized: .commonNotAvailable))
             }
 
-            Section("Source") {
-                Link("View on TVmaze", destination: show.tvmazeURL)
+            Section(.detailSource) {
+                Link(destination: show.tvmazeURL) {
+                    Label(.detailViewOnTVmaze, systemImage: "arrow.up.right.square")
+                }
             }
         }
+        .listStyle(.insetGrouped)
         .accessibilityIdentifier("show.detail")
         .navigationTitle(show.name)
         .navigationBarTitleDisplayMode(.inline)
     }
+}
+
+#Preview("Show detail") {
+    NavigationStack {
+        ShowDetailView(show: UIPreviewData.show)
+    }
+    .tint(.blue)
 }

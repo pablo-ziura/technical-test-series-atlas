@@ -7,10 +7,11 @@ import Testing
 final class ShowsServiceTests {
     private let mockNetworkClient: NetworkClientMock
     private let showsService: ShowsService
+    private let searchPath = "test/shows/search"
 
     init() {
         mockNetworkClient = NetworkClientMock()
-        showsService = ShowsService(networkClient: mockNetworkClient)
+        showsService = ShowsService(networkClient: mockNetworkClient, searchPath: searchPath)
     }
 
     @Test
@@ -30,7 +31,7 @@ final class ShowsServiceTests {
         #expect(show.tvmazeURL.absoluteString == "https://www.tvmaze.com/shows/526/the-office")
         let expectedOptionalShow = try #require(Show.mockShows().last)
         #expect(result.last == expectedOptionalShow)
-        #expect(mockNetworkClient.endpoints == ["search/shows"])
+        #expect(mockNetworkClient.endpoints == [searchPath])
         #expect(mockNetworkClient.params == ["q": "The Office & friends"])
     }
 
@@ -109,7 +110,7 @@ final class ShowsServiceTests {
         defer { mockNetworkClient.onGet = nil }
 
         await #expect(throws: CancellationError.self) { try await task.value }
-        #expect(mockNetworkClient.endpoints == ["search/shows"])
+        #expect(mockNetworkClient.endpoints == [searchPath])
     }
 
     @Test
@@ -121,7 +122,7 @@ final class ShowsServiceTests {
         let result = try await useCase.execute(query: " \nThe Office\t ")
 
         #expect(result.map(\.id) == [526, 525])
-        #expect(mockNetworkClient.endpoints == ["search/shows"])
+        #expect(mockNetworkClient.endpoints == [searchPath])
         #expect(mockNetworkClient.params == ["q": " \nThe Office\t "])
     }
 }

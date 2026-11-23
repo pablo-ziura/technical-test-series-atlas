@@ -14,6 +14,8 @@ Se necesita Xcode 27.2 y un simulador compatible. La app, sus tests y el paquete
 
 La API no requiere claves ni credenciales.
 
+La URL base de la API, las rutas de búsqueda y los enlaces de Settings se definen en `SeriesAtlas/Resources/AppConfiguration.plist`. `SeriesAtlasApp` carga y valida una configuración inmutable al arrancar e inyecta cada valor en su destinatario; un recurso ausente, incompleto o inválido produce un error explícito de configuración. Para otro target se puede incluir un recurso con el mismo nombre y valores distintos. Las URL recibidas de la API y los fixtures de tests y previews se mantienen independientes de esta configuración.
+
 ## Capa de red
 
 `Packages/SeriesAtlasNetwork` es un paquete SPM local sin dependencias externas. Expone `NetworkClientProtocol` y un `NetworkClient` inmutable para peticiones GET y respuestas `Decodable & Sendable`.
