@@ -5,7 +5,7 @@ import Observation
 @Observable
 final class PeopleSearchViewModel {
     private let searchPeopleUseCase: SearchPeopleUseCaseProtocol
-    private var searchTask: Task<Void, Never>?
+    private(set) var searchTask: Task<Void, Never>?
 
     var state: SearchState<Person> = .idle
     var query = ""
