@@ -15,20 +15,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+
 jobs:
-  verify:
-    name: Build and tests
+  network:
+    name: Network tests
     runs-on: xcode-27
-    timeout-minutes: 30
-
-    defaults:
-      run:
-        shell: bash
-
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
-      SIMULATOR_NAME: iPhone 17
-      SIMULATOR_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-27-2
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -43,7 +41,6 @@ jobs:
           {
             xcodebuild -version
             xcrun swift --version
-            xcrun simctl list devices available
           } 2>&1 | tee "$RUNNER_TEMP/TestResults/environment.log"
 
       - name: Test network package
@@ -58,6 +55,50 @@ jobs:
             --show-codecov-path)
           cp "$SERIES_ATLAS_NETWORK_COVERAGE_PATH" \
             "$RUNNER_TEMP/TestResults/network-coverage.json"
+
+      - name: Collect failure diagnostics
+        if: failure() || cancelled()
+        timeout-minutes: 1
+        run: |
+          mkdir -p "$RUNNER_TEMP/TestResults"
+          ps -axo pid,ppid,state,etime,command \
+            > "$RUNNER_TEMP/TestResults/processes.txt" 2>&1 || true
+
+      - name: Upload test results
+        if: always()
+        timeout-minutes: 3
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: network-test-results
+          path: ${{ runner.temp }}/TestResults
+          retention-days: 7
+          if-no-files-found: warn
+
+  ios-unit:
+    name: iOS unit tests
+    runs-on: xcode-27
+    timeout-minutes: 30
+
+    env:
+      SIMULATOR_NAME: iPhone 17
+      SIMULATOR_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-27-2
+      TEST_SUITE: unit
+
+    steps: &ios-test-steps
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Show environment
+        timeout-minutes: 1
+        run: |
+          mkdir -p "$RUNNER_TEMP/TestResults"
+          {
+            xcodebuild -version
+            xcrun swift --version
+            xcrun simctl list devices available
+          } 2>&1 | tee "$RUNNER_TEMP/TestResults/environment.log"
 
       - name: Prepare simulator
         timeout-minutes: 3
@@ -123,6 +164,11 @@ jobs:
       - name: Run tests
         timeout-minutes: 10
         run: |
+          case "$TEST_SUITE" in
+            unit) TEST_SELECTION=(-skip-testing:SeriesAtlasUITests) ;;
+            ui) TEST_SELECTION=(-only-testing:SeriesAtlasUITests) ;;
+            *) echo "Unsupported test suite: $TEST_SUITE" >&2; exit 1 ;;
+          esac
           xcodebuild \
             -project SeriesAtlas.xcodeproj \
             -scheme SeriesAtlas \
@@ -133,6 +179,7 @@ jobs:
             -resultBundlePath "$RUNNER_TEMP/TestResults/SeriesAtlas.xcresult" \
             -enableCodeCoverage YES \
             -parallel-testing-enabled NO \
+            "${TEST_SELECTION[@]}" \
             CODE_SIGNING_ALLOWED=NO \
             test-without-building \
             2>&1 | tee "$RUNNER_TEMP/TestResults/tests.log"
@@ -168,7 +215,48 @@ jobs:
         timeout-minutes: 3
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ios-test-results
+          name: ios-${{ env.TEST_SUITE }}-test-results
           path: ${{ runner.temp }}/TestResults
           retention-days: 7
           if-no-files-found: warn
+
+  ios-ui:
+    name: iOS UI tests
+    runs-on: xcode-27
+    timeout-minutes: 30
+
+    env:
+      SIMULATOR_NAME: iPhone 17
+      SIMULATOR_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-27-2
+      TEST_SUITE: ui
+
+    steps: *ios-test-steps
+
+  verify:
+    name: Build and tests
+    if: ${{ always() }}
+    needs: [network, ios-unit, ios-ui]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require successful test jobs
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          results = json.loads(os.environ["NEEDS_JSON"])
+          required = {"network", "ios-unit", "ios-ui"}
+          if set(results) != required:
+              raise SystemExit("Unexpected or missing test jobs")
+          unsuccessful = {
+              name: job.get("result")
+              for name, job in results.items()
+              if job.get("result") != "success"
+          }
+          if unsuccessful:
+              raise SystemExit(f"Test jobs did not succeed: {unsuccessful}")
+          print("All test jobs succeeded.")
+          PY
