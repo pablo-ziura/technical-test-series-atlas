@@ -5,7 +5,7 @@ import Observation
 @Observable
 final class ShowsSearchViewModel {
     private let searchShowsUseCase: SearchShowsUseCaseProtocol
-    private var searchTask: Task<Void, Never>?
+    private(set) var searchTask: Task<Void, Never>?
 
     var state: SearchState<Show> = .idle
     var query = ""

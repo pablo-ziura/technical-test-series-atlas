@@ -75,7 +75,7 @@ xcodebuild -project SeriesAtlas.xcodeproj -scheme SeriesAtlas \
   CODE_SIGNING_ALLOWED=NO test
 ```
 
-El primer comando ejecuta los tests nativos del paquete en macOS. El segundo necesita un iPhone 17 con iOS 27.2 instalado y ejecuta el mismo plan que `⌘U`: `SeriesAtlasTests`, `SeriesAtlasUITests` y `SeriesAtlasNetworkTests`. Los tests unitarios cubren casos de uso, repositorios, servicios, mapeos, errores y cancelación, con red simulada. La caché se prueba con servicios simulados y tiempo controlado: aciertos, expiración exacta, normalización, consultas independientes, resultados vacíos y ausencia de almacenamiento tras errores o cancelación. Los tests unitarios de Presentation quedan para una entrega posterior.
+El primer comando ejecuta los tests nativos del paquete en macOS. El segundo necesita un iPhone 17 con iOS 27.2 instalado y ejecuta el mismo plan que `⌘U`: `SeriesAtlasTests`, `SeriesAtlasUITests` y `SeriesAtlasNetworkTests`. Los tests unitarios cubren casos de uso, repositorios, servicios, mapeos, errores y cancelación, con red simulada. La caché se prueba con servicios simulados y tiempo controlado: aciertos, expiración exacta, normalización, consultas independientes, resultados vacíos y ausencia de almacenamiento tras errores o cancelación. Los tests unitarios de Presentation cubren estados de búsqueda, respuestas y errores fuera de orden, cancelación al confirmar otra consulta o solo espacios, edición del campo y Retry de la consulta confirmada. Usan casos de uso simulados con continuaciones y esperan la finalización de las tareas, sin red ni esperas temporales.
 
 El test de interfaz existente solo comprueba el lanzamiento de la app; no acredita cobertura funcional de búsqueda ni detalle.
 
